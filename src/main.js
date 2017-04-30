@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Created by aresn on 16/6/20.
  */
 import Vue from 'vue';
@@ -7,7 +7,7 @@ import App from 'components/app.vue';
 import Routers from './router';
 import Env from './config/env';
 import iView from 'iview';
-import 'iview/dist/styles/iview.css';    // 使用 CSS
+import './styles/iview.css';    // 使用 CSS
 
 Vue.use(VueRouter);
 Vue.use(iView);

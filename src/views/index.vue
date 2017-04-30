@@ -1,5 +1,7 @@
 
 <template>
+
+    <h3 style="color:#464c5b">英语四六级成绩查询</h3>
     <div class="form">
         <i-form v-ref:form-inline :model="formInline" :rules="ruleInline" >
             <Form-item prop="user">
@@ -14,7 +16,7 @@
             </Form-item>
             <Form-item>
                 <i-button type="primary" @click="handleSubmit('formInline')">
-                    登录
+                    查询
                 </i-button>
                 <i-button type="ghost" @click="handleReset('formInline')" style="margin-left: 0.4rem">
                     重置
@@ -25,32 +27,43 @@
     <div class="result" v-if="show">
         <Card :bordered="true">
             <p slot="title">查询结果</p>
-            <p>姓名：{{findData.userInfo.name}}</p>
-            <p>学校：{{findData.userInfo.school}}</p>
-            <p>考试类别：{{findData.userInfo.name}}</p>
-            <p>准考证号：{{findData.userInfo.num}}</p>
-            <p>考试时间：{{findData.userInfo.time}}</p>
+            <p>姓名：{{result.name}}</p>
+            <p>学校：{{result.school}}</p>
+            <p>考试类别：{{result.name}}</p>
+            <p>准考证号：{{result.num}}</p>
+            <p>考试时间：{{result.time}}</p>
         </Card>
         <Card :bordered="true">
-            <p slot="title">继续努力</p>
-            <p>总分：{{findData.userInfo.name}}</p>
-            <p>听力：{{findData.userInfo.school}}</p>
-            <p>阅读：{{findData.userInfo.name}}</p>
-            <p>写作：{{findData.userInfo.num}}</p>
+            <p>总分：{{score.totleScore}}</p>
+            <p>听力：{{score.tlScore}}</p>
+            <p>阅读：{{score.ydScore}}</p>
+            <p>写作翻译：{{score.xzpyScore}}</p>
+        </Card>
+    </div>
+    <div class="result"> 
+        <Card :bordered="true" v-if="!!res">
+            <p>{{res}}</p>
         </Card>
     </div>
 </template>
 
 <style scoped>
+
+h3 {
+    font-size: .4rem;
+    text-align: center;
+    margin-top: 0.2rem;
+    line-height: 1rem;
+}
     .result {
-        width: 5.5rem;
+        width: 6rem;
         text-align: center;
-        margin-left: 1rem;
+        margin-left: 0.75rem;
     }
     .form {
-        width: 5.5rem;
+        width: 6rem;
         text-align: center;
-        margin-left: 1rem;
+        margin-left: 0.75rem;
     }
     form > div {
         margin: 0 0 0.4rem 0
@@ -80,9 +93,9 @@
                     ]
                 },
                 show: false,
-                findData:{
-
-                }
+                result:{},
+                score:{},
+                res: ''
             }
         },
         ready () {
@@ -98,7 +111,7 @@
                         this.$Message.loading('查询中...', 0)
                         this.getData()
                     } else {
-                        this.$Message.error('表单验证失败!');
+                        this.$Message.error('信息验证失败!');
                     }
                 })
             },
@@ -106,27 +119,42 @@
                 this.$refs[name].resetFields();
             },
             getData(){
-                let data = '{"ticket":"'+this.formInline.password+'","name":"'+this.formInline.user+'","vCode":"","_url":"getScore"}'
-                let req =  new XMLHttpRequest();
-                if(req){
-                    var _this = this
-                    console.log(this.data)
-                    req.open("POST", "http://cet.yunban.com/webservice.php", true);
-                    req.setRequestHeader("Content-Type","application/x-www-form-urlencoded; charset=gbk;");
-                    req.send(data);
-                    req.onreadystatechange = function(){
-                        if(req.readyState == 4){
-                            if(req.status == 200){
+                let name = this.formInline.user
+                let num = this.formInline.password
+                let _this = this
+                $.ajax({
+                    type:"GET",
+                    url:"http://yangqiwang.cn/api-cet/?name="+name+"&num="+num,
+                    data:{},
+                    datatype: "json",            
+                    success:function(req){
+                        console.log(req)
+                        let data = jQuery.parseJSON(req)
+                        console.log(data)
+                            if(data.status == 200){
+                            console.log(1)
+                                _this.$Message.destroy()
                                 _this.$Message.success('查询成功!');
                                 _this.show = true
-                                _this.findData = req.result
-                                console.log(req.result)
-                            }else{
+                                _this.result = data.result
+                                _this.score = data.score
+                                console.log(data.result)
+                                console.log(_this.result)
+                            }
+                            else if (data.status == 201){
+                                console.log(2)
+                                _this.res = data.message
+                                console.log(data.result)
+                                _this.$Message.destroy()
+                            }
+                            else{
+                                _this.$Message.destroy()
                                 _this.$Message.error('网络超时!');
                             }
-                        }
-                    }
-                }
+                    },
+                    error: function(){
+                    }         
+                });
             },
         }
     }
